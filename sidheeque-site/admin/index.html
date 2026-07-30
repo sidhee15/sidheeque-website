@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Admin — Aboobacker Sidheeque</title>
+<meta name="robots" content="noindex,nofollow"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--navy:#16243F;--purple:#7A2E8E;--teal:#0E8C86;--ink:#1E2740;--muted:#5A6276;--hair:#E6E3EF;--mist:#F4F2F8;--paper:#FCFCFE;--grad:linear-gradient(90deg,var(--navy),var(--purple) 52%,var(--teal));}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(--ink);min-height:100vh;-webkit-font-smoothing:antialiased;}
+/* ── Login ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;}
+.login-card{background:#fff;border:1px solid var(--hair);border-radius:20px;padding:48px 40px;width:100%;max-width:420px;text-align:center;box-shadow:0 20px 60px rgba(22,36,63,.10);}
+.login-card h1{font-family:'Fraunces',serif;font-size:1.8rem;color:var(--navy);margin:16px 0 6px;}
+.login-card p{color:var(--muted);font-size:.95rem;margin-bottom:28px;}
+/* ── App shell ── */
+#app{display:none;}
+.topbar{background:var(--navy);color:#fff;padding:0 28px;height:58px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.topbar-brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces',serif;font-weight:600;font-size:1.1rem;}
+.topbar-brand .dot{width:8px;height:8px;border-radius:50%;background:var(--teal);}
+.topbar-right{display:flex;align-items:center;gap:14px;}
+.topbar-right a{color:rgba(255,255,255,.75);font-size:.9rem;text-decoration:none;transition:color .2s;}
+.topbar-right a:hover{color:#fff;}
+.tabs{background:#fff;border-bottom:1px solid var(--hair);padding:0 28px;display:flex;gap:4px;}
+.tab{padding:14px 20px;font-weight:600;font-size:.92rem;cursor:pointer;border-bottom:3px solid transparent;color:var(--muted);transition:color .2s,border-color .2s;background:none;border-top:none;border-left:none;border-right:none;}
+.tab.active,.tab:hover{color:var(--navy);}
+.tab.active{border-bottom-color:var(--purple);}
+.main{max-width:1060px;margin:0 auto;padding:28px 24px;}
+/* ── Cards ── */
+.panel{background:#fff;border:1px solid var(--hair);border-radius:16px;padding:28px;margin-bottom:24px;}
+.panel h2{font-family:'Fraunces',serif;font-weight:600;color:var(--navy);font-size:1.3rem;margin-bottom:18px;display:flex;align-items:center;gap:10px;}
+.panel h2 .badge{background:var(--grad);color:#fff;border-radius:999px;padding:2px 10px;font-size:.75rem;font-weight:600;font-family:'Inter',sans-serif;}
+/* ── Form fields ── */
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:.85rem;font-weight:600;color:var(--navy);margin-bottom:6px;}
+.field input,.field textarea,.field select{width:100%;border:1.5px solid var(--hair);border-radius:10px;padding:11px 14px;font:inherit;color:var(--ink);transition:border-color .18s,box-shadow .18s;background:#fff;}
+.field textarea{min-height:200px;resize:vertical;}
+.field input:focus,.field textarea:focus,.field select:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(122,46,142,.10);}
+.field .hint{font-size:.8rem;color:var(--muted);margin-top:5px;}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:.4em;padding:11px 22px;border-radius:999px;font:600 .92rem/1 'Inter',sans-serif;cursor:pointer;border:1.5px solid transparent;transition:transform .15s,box-shadow .2s,background .2s;}
+.btn-primary{background:var(--navy);color:#fff;border-color:var(--navy);}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(22,36,63,.22);}
+.btn-ghost{background:#fff;color:var(--navy);border-color:var(--hair);}
+.btn-ghost:hover{border-color:var(--purple);color:var(--purple);}
+.btn-danger{background:#fff;color:#c0392b;border-color:#f5c6cb;}
+.btn-danger:hover{background:#fff0f0;}
+.btn-sm{padding:7px 14px;font-size:.83rem;}
+/* ── Image preview ── */
+.img-preview{width:100%;max-height:220px;object-fit:cover;border-radius:10px;margin-top:10px;display:none;}
+.img-preview.show{display:block;}
+/* ── Session list ── */
+.session-list{display:grid;gap:14px;margin-top:6px;}
+.session-item{display:flex;gap:14px;align-items:flex-start;padding:14px;border:1px solid var(--hair);border-radius:12px;background:var(--mist);}
+.session-item img{width:90px;height:60px;object-fit:cover;border-radius:8px;flex:0 0 auto;}
+.session-info{flex:1;min-width:0;}
+.session-info strong{display:block;color:var(--navy);font-size:.96rem;font-family:'Fraunces',serif;}
+.session-info span{color:var(--muted);font-size:.84rem;}
+.session-actions{display:flex;gap:8px;flex:0 0 auto;}
+/* ── Blog list ── */
+.blog-item{padding:14px;border:1px solid var(--hair);border-radius:12px;background:var(--mist);margin-bottom:12px;}
+.blog-item-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.blog-item strong{font-family:'Fraunces',serif;color:var(--navy);display:block;margin-bottom:3px;}
+.blog-item span{color:var(--muted);font-size:.84rem;}
+/* ── Rich text toolbar ── */
+.toolbar{display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--mist);border:1.5px solid var(--hair);border-bottom:none;border-radius:10px 10px 0 0;}
+.toolbar button{padding:5px 10px;border:1px solid var(--hair);border-radius:6px;background:#fff;font-size:.82rem;cursor:pointer;font-family:'Inter',sans-serif;color:var(--ink);}
+.toolbar button:hover{background:var(--navy);color:#fff;border-color:var(--navy);}
+#blog-editor{border-radius:0 0 10px 10px;min-height:300px;border:1.5px solid var(--hair);padding:14px;outline:none;font-family:'Inter',sans-serif;font-size:1rem;line-height:1.7;color:var(--ink);}
+#blog-editor:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(122,46,142,.10);}
+/* ── Status toast ── */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--navy);color:#fff;padding:14px 22px;border-radius:12px;font-size:.92rem;font-weight:500;z-index:999;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.error{background:#c0392b;}
+/* ── Password change ── */
+.setting-section{max-width:400px;}
+/* ── Loader ── */
+.spinner{display:inline-block;width:18px;height:18px;border:2px solid var(--hair);border-top-color:var(--purple);border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty-state{text-align:center;padding:40px;color:var(--muted);}
+/* ── Visibility badge ── */
+.vis-on{color:#0c6b53;background:#eefaf6;border-radius:4px;padding:2px 8px;font-size:.78rem;font-weight:600;}
+.vis-off{color:#7a2e2e;background:#fff0f0;border-radius:4px;padding:2px 8px;font-size:.78rem;font-weight:600;}
+@media(max-width:600px){.row2{grid-template-columns:1fr;}.session-item img{width:70px;height:48px;}}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ LOGIN ═══════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <div style="width:52px;height:52px;background:var(--grad);border-radius:14px;margin:0 auto;display:flex;align-items:center;justify-content:center;">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="#fff"><path d="M12 1a5 5 0 1 0 0 10A5 5 0 0 0 12 1zm0 12c-5.33 0-8 2.67-8 4v2h16v-2c0-1.33-2.67-4-8-4z"/></svg>
+    </div>
+    <h1>Admin Panel</h1>
+    <p>sidheeque.in content manager</p>
+    <div class="field" style="text-align:left;">
+      <label for="pwd-input">Password</label>
+      <input type="password" id="pwd-input" placeholder="Enter your password" onkeydown="if(event.key==='Enter')doLogin()"/>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;" onclick="doLogin()">Sign in</button>
+    <p id="login-err" style="color:#c0392b;font-size:.88rem;margin-top:10px;display:none;">Incorrect password. Please try again.</p>
+  </div>
+</div>
+
+<!-- ═══════════ APP ═══════════ -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand"><div class="dot"></div>Aboobacker Sidheeque · Admin</div>
+    <div class="topbar-right">
+      <a href="../index.html" target="_blank">View site ↗</a>
+      <a href="#" onclick="doLogout()">Sign out</a>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('portfolio',this)">📸 Portfolio</button>
+    <button class="tab" onclick="switchTab('blog',this)">✍️ Blog</button>
+    <button class="tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
+  </div>
+
+  <!-- ── PORTFOLIO TAB ── -->
+  <div id="tab-portfolio" class="main">
+    <div class="panel">
+      <h2>Add new session <span class="badge">New</span></h2>
+      <div class="row2">
+        <div class="field"><label>Training topic *</label><input type="text" id="pf-topic" placeholder="e.g. Strengthening Assessment & Evaluation Practices"/></div>
+        <div class="field"><label>School / venue *</label><input type="text" id="pf-school" placeholder="e.g. Hill Blooms School"/></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Place *</label><input type="text" id="pf-place" placeholder="e.g. Mananthavady, Wayanad"/></div>
+        <div class="field"><label>Display date *</label><input type="text" id="pf-date" placeholder="e.g. 10–11 July 2026"/></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Sort date * <span style="font-weight:400;color:var(--muted)">(for ordering)</span></label><input type="date" id="pf-sortdate"/></div>
+        <div></div>
+      </div>
+      <div class="field">
+        <label>Training poster / photo *</label>
+        <input type="file" id="pf-image" accept="image/*" onchange="previewImage(this,'pf-preview')"/>
+        <img id="pf-preview" class="img-preview" alt="Preview"/>
+        <p class="hint">JPG or PNG. Landscape (wide) images work best.</p>
+      </div>
+      <button class="btn btn-primary" id="pf-save-btn" onclick="saveSession()">Save &amp; publish</button>
+    </div>
+
+    <div class="panel">
+      <h2>All sessions</h2>
+      <div id="pf-list"><div class="empty-state"><div class="spinner"></div><p>Loading…</p></div></div>
+    </div>
+  </div>
+
+  <!-- ── BLOG TAB ── -->
+  <div id="tab-blog" class="main" style="display:none;">
+    <div class="panel">
+      <h2>Write new article <span class="badge">New</span></h2>
+      <div class="row2">
+        <div class="field"><label>Title *</label><input type="text" id="bl-title" placeholder="Article title" oninput="autoSlug()"/></div>
+        <div class="field"><label>Category *</label>
+          <select id="bl-cat">
+            <option value="Pedagogy &amp; Practice">Pedagogy &amp; Practice</option>
+            <option value="Policy &amp; Leadership">Policy &amp; Leadership</option>
+            <option value="Assessment &amp; Evaluation">Assessment &amp; Evaluation</option>
+            <option value="Teacher Development">Teacher Development</option>
+            <option value="Wellbeing in Schools">Wellbeing in Schools</option>
+            <option value="NEP 2020 &amp; NCF">NEP 2020 &amp; NCF</option>
+            <option value="Reflection">Reflection</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Publish date *</label><input type="date" id="bl-date"/></div>
+        <div class="field"><label>Publish time *</label><input type="time" id="bl-time" value="09:30"/></div>
+      </div>
+      <div class="field"><label>URL slug * <span style="font-weight:400;color:var(--muted)">(auto-filled from title)</span></label>
+        <input type="text" id="bl-slug" placeholder="e.g. from-teacher-to-educator"/>
+        <p class="hint">Use only lowercase letters, numbers and hyphens. No spaces.</p>
+      </div>
+      <div class="field">
+        <label>Article body *</label>
+        <div class="toolbar">
+          <button onclick="fmt('bold')"><b>B</b></button>
+          <button onclick="fmt('italic')"><i>I</i></button>
+          <button onclick="fmt('underline')"><u>U</u></button>
+          <button onclick="fmtH2()">H2</button>
+          <button onclick="fmtH3()">H3</button>
+          <button onclick="fmtQuote()">❝ Quote</button>
+          <button onclick="fmt('insertUnorderedList')">• List</button>
+          <button onclick="fmt('insertOrderedList')">1. List</button>
+          <button onclick="fmtLink()">🔗 Link</button>
+          <button onclick="clearFormat()">Clear</button>
+        </div>
+        <div id="blog-editor" contenteditable="true" data-placeholder="Write your article here…"></div>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <button class="btn btn-primary" id="bl-save-btn" onclick="saveArticle(true)">Publish now</button>
+        <button class="btn btn-ghost" onclick="saveArticle(false)">Save as draft</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>All articles</h2>
+      <div id="bl-list"><div class="empty-state"><div class="spinner"></div><p>Loading…</p></div></div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS TAB ── -->
+  <div id="tab-settings" class="main" style="display:none;">
+    <div class="panel setting-section">
+      <h2>Change password</h2>
+      <div class="field"><label>Current password</label><input type="password" id="pwd-current" placeholder="Your current password"/></div>
+      <div class="field"><label>New password</label><input type="password" id="pwd-new" placeholder="New password"/></div>
+      <div class="field"><label>Confirm new password</label><input type="password" id="pwd-confirm" placeholder="Repeat new password"/></div>
+      <button class="btn btn-primary" onclick="changePassword()">Update password</button>
+      <p id="pwd-msg" style="margin-top:12px;font-size:.9rem;display:none;"></p>
+    </div>
+    <div class="panel" style="max-width:400px;">
+      <h2>Quick links</h2>
+      <p style="color:var(--muted);font-size:.92rem;margin-bottom:14px;">Jump to the live pages to check your updates.</p>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <a href="../portfolio.html" target="_blank" class="btn btn-ghost btn-sm">View Portfolio →</a>
+        <a href="../blog.html" target="_blank" class="btn btn-ghost btn-sm">View Blog →</a>
+        <a href="../index.html" target="_blank" class="btn btn-ghost btn-sm">View Homepage →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL='https://svpnhhjwmjxypbbpqzvl.supabase.co';
+const SB_KEY='sb_publishable_MieYIS9DZPVltY87z1QyAQ_y-M8e6EZ';
+const BUCKET='portfolio-images';
+
+// ── Password management ──
+const PWD_KEY='sidheeque_admin_pwd';
+const DEFAULT_PWD='Sidhee@2026';
+function getStoredPwd(){return localStorage.getItem(PWD_KEY)||DEFAULT_PWD;}
+
+// ── Auth ──
+function checkAuth(){if(sessionStorage.getItem('admin_auth')==='1'){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';loadPortfolioList();loadBlogList();}}
+function doLogin(){const v=document.getElementById('pwd-input').value;if(v===getStoredPwd()){sessionStorage.setItem('admin_auth','1');document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';loadPortfolioList();loadBlogList();}else{document.getElementById('login-err').style.display='block';}}
+function doLogout(){sessionStorage.removeItem('admin_auth');location.reload();}
+checkAuth();
+
+// ── Tabs ──
+function switchTab(name,btn){
+  ['portfolio','blog','settings'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===name?'':'none';});
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ── Toast ──
+function toast(msg,err=false){const el=document.getElementById('toast');el.textContent=msg;el.className='toast'+(err?' error':'');el.classList.add('show');setTimeout(()=>el.classList.remove('show'),3500);}
+
+// ── Image preview ──
+function previewImage(input,previewId){const f=input.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const img=document.getElementById(previewId);img.src=e.target.result;img.classList.add('show');};r.readAsDataURL(f);}
+
+// ── Supabase helpers ──
+async function sbGet(table,query=''){const r=await fetch(SB_URL+'/rest/v1/'+table+'?'+query,{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});return r.json();}
+async function sbPost(table,data){const r=await fetch(SB_URL+'/rest/v1/'+table,{method:'POST',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify(data)});return r;}
+async function sbPatch(table,id,data){const r=await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'PATCH',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},body:JSON.stringify(data)});return r;}
+async function sbDelete(table,id){const r=await fetch(SB_URL+'/rest/v1/'+table+'?id=eq.'+id,{method:'DELETE',headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}});return r;}
+
+// ── Upload image to Supabase Storage ──
+async function uploadImage(file){
+  const ext=file.name.split('.').pop();
+  const name=Date.now()+'.'+ext;
+  const r=await fetch(SB_URL+'/storage/v1/object/'+BUCKET+'/'+name,{
+    method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':file.type,'x-upsert':'true'},
+    body:file
+  });
+  if(!r.ok)throw new Error('Upload failed');
+  return SB_URL+'/storage/v1/object/public/'+BUCKET+'/'+name;
+}
+
+// ════════════════════════════
+// PORTFOLIO
+// ════════════════════════════
+async function saveSession(){
+  const btn=document.getElementById('pf-save-btn');
+  const topic=document.getElementById('pf-topic').value.trim();
+  const school=document.getElementById('pf-school').value.trim();
+  const place=document.getElementById('pf-place').value.trim();
+  const date=document.getElementById('pf-date').value.trim();
+  const sortdate=document.getElementById('pf-sortdate').value;
+  const file=document.getElementById('pf-image').files[0];
+  if(!topic||!school||!place||!date||!sortdate||!file){toast('Please fill in all fields and choose an image.',true);return;}
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Uploading…';
+  try{
+    const url=await uploadImage(file);
+    const r=await sbPost('portfolio',{topic,school,place,event_date:date,sort_date:sortdate,image_url:url,visible:true});
+    if(!r.ok)throw new Error(await r.text());
+    toast('Session published! It appears on the portfolio page now.');
+    ['pf-topic','pf-school','pf-place','pf-date','pf-sortdate'].forEach(id=>document.getElementById(id).value='');
+    document.getElementById('pf-image').value='';
+    document.getElementById('pf-preview').classList.remove('show');
+    loadPortfolioList();
+  }catch(e){toast('Error: '+e.message,true);}
+  btn.disabled=false;btn.innerHTML='Save &amp; publish';
+}
+
+async function loadPortfolioList(){
+  const el=document.getElementById('pf-list');
+  el.innerHTML='<div class="empty-state"><div class="spinner"></div><p>Loading…</p></div>';
+  try{
+    const data=await sbGet('portfolio','order=sort_date.desc');
+    if(!data||data.length===0){el.innerHTML='<div class="empty-state"><p>No sessions yet. Add your first one above.</p></div>';return;}
+    el.innerHTML='<div class="session-list">'+data.map(s=>`
+      <div class="session-item" id="si-${s.id}">
+        <img src="${s.image_url}" alt="${s.topic}"/>
+        <div class="session-info">
+          <strong>${s.topic}</strong>
+          <span>${s.school} · ${s.place} · ${s.event_date}</span>
+          <span style="margin-left:6px;" class="${s.visible?'vis-on':'vis-off'}">${s.visible?'Visible':'Hidden'}</span>
+        </div>
+        <div class="session-actions">
+          <button class="btn btn-ghost btn-sm" onclick="toggleVisible('portfolio','${s.id}',${s.visible},'si-${s.id}')">
+            ${s.visible?'Hide':'Show'}
+          </button>
+          <button class="btn btn-danger btn-sm" onclick="deleteItem('portfolio','${s.id}','si-${s.id}','session')">Delete</button>
+        </div>
+      </div>`).join('')+'</div>';
+  }catch(e){el.innerHTML='<p style="color:#c0392b;padding:20px;">Could not load sessions.</p>';}
+}
+
+// ════════════════════════════
+// BLOG
+// ════════════════════════════
+function autoSlug(){
+  const t=document.getElementById('bl-title').value;
+  document.getElementById('bl-slug').value=t.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+}
+function fmt(cmd){document.getElementById('blog-editor').focus();document.execCommand(cmd,false,null);}
+function fmtH2(){document.getElementById('blog-editor').focus();document.execCommand('formatBlock',false,'h2');}
+function fmtH3(){document.getElementById('blog-editor').focus();document.execCommand('formatBlock',false,'h3');}
+function fmtQuote(){document.getElementById('blog-editor').focus();document.execCommand('formatBlock',false,'blockquote');}
+function clearFormat(){document.getElementById('blog-editor').focus();document.execCommand('removeFormat',false,null);}
+function fmtLink(){const url=prompt('Enter URL:');if(url){document.getElementById('blog-editor').focus();document.execCommand('createLink',false,url);}}
+
+async function saveArticle(publish=true){
+  const btn=document.getElementById('bl-save-btn');
+  const title=document.getElementById('bl-title').value.trim();
+  const slug=document.getElementById('bl-slug').value.trim();
+  const cat=document.getElementById('bl-cat').value;
+  const date=document.getElementById('bl-date').value;
+  const time=document.getElementById('bl-time').value;
+  const body=document.getElementById('blog-editor').innerHTML.trim();
+  if(!title||!slug||!date||!time||body===''){toast('Please fill in all fields.',true);return;}
+  const published_at=new Date(date+'T'+time+':00').toISOString();
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Saving…';
+  try{
+    const r=await sbPost('blog',{title,slug,category:cat,body,published_at,visible:publish});
+    if(!r.ok){const err=await r.text();throw new Error(err);}
+    toast(publish?'Article published! It appears on the blog now.':'Draft saved.');
+    document.getElementById('bl-title').value='';
+    document.getElementById('bl-slug').value='';
+    document.getElementById('blog-editor').innerHTML='';
+    loadBlogList();
+  }catch(e){
+    if(e.message.includes('duplicate')||e.message.includes('unique')){toast('A slug with that name already exists. Change the URL slug.',true);}
+    else{toast('Error: '+e.message,true);}
+  }
+  btn.disabled=false;btn.innerHTML='Publish now';
+}
+
+async function loadBlogList(){
+  const el=document.getElementById('bl-list');
+  el.innerHTML='<div class="empty-state"><div class="spinner"></div><p>Loading…</p></div>';
+  try{
+    const data=await sbGet('blog','order=published_at.desc');
+    if(!data||data.length===0){el.innerHTML='<div class="empty-state"><p>No articles yet. Write your first one above.</p></div>';return;}
+    el.innerHTML=data.map(a=>{
+      const d=new Date(a.published_at);
+      const ds=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+      const ts=d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',hour12:true}).toUpperCase();
+      return `<div class="blog-item" id="bi-${a.id}">
+        <div class="blog-item-top">
+          <div>
+            <strong>${a.title}</strong>
+            <span>${ds} · ${ts} · ${a.category}</span>
+            <span style="margin-left:6px;" class="${a.visible?'vis-on':'vis-off'}">${a.visible?'Published':'Draft'}</span>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" onclick="toggleVisible('blog','${a.id}',${a.visible},'bi-${a.id}')">
+              ${a.visible?'Unpublish':'Publish'}
+            </button>
+            <a href="../article.html?slug=${a.slug}" target="_blank" class="btn btn-ghost btn-sm">Preview →</a>
+            <button class="btn btn-danger btn-sm" onclick="deleteItem('blog','${a.id}','bi-${a.id}','article')">Delete</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }catch(e){el.innerHTML='<p style="color:#c0392b;padding:20px;">Could not load articles.</p>';}
+}
+
+// ════════════════════════════
+// SHARED ACTIONS
+// ════════════════════════════
+async function toggleVisible(table,id,current,elId){
+  const r=await sbPatch(table,id,{visible:!current});
+  if(r.ok){toast((!current?'Now visible':'Now hidden')+' on the site.');
+    document.getElementById(elId).querySelector('.vis-on,.vis-off').className=!current?'vis-on':'vis-off';
+    document.getElementById(elId).querySelector('.vis-on,.vis-off').textContent=table==='portfolio'?(!current?'Visible':'Hidden'):(!current?'Published':'Draft');
+    document.getElementById(elId).querySelector('button').textContent=!current?'Hide':'Show';
+  }else{toast('Could not update.',true);}
+}
+
+async function deleteItem(table,id,elId,label){
+  if(!confirm('Delete this '+label+'? This cannot be undone.'))return;
+  const r=await sbDelete(table,id);
+  if(r.ok){document.getElementById(elId).remove();toast(label.charAt(0).toUpperCase()+label.slice(1)+' deleted.');}
+  else{toast('Could not delete.',true);}
+}
+
+// ════════════════════════════
+// PASSWORD CHANGE
+// ════════════════════════════
+function changePassword(){
+  const cur=document.getElementById('pwd-current').value;
+  const nw=document.getElementById('pwd-new').value;
+  const conf=document.getElementById('pwd-confirm').value;
+  const msg=document.getElementById('pwd-msg');
+  msg.style.display='block';
+  if(cur!==getStoredPwd()){msg.style.color='#c0392b';msg.textContent='Current password is incorrect.';return;}
+  if(nw.length<8){msg.style.color='#c0392b';msg.textContent='New password must be at least 8 characters.';return;}
+  if(nw!==conf){msg.style.color='#c0392b';msg.textContent='New passwords do not match.';return;}
+  localStorage.setItem(PWD_KEY,nw);
+  msg.style.color='#0c6b53';msg.textContent='Password updated successfully.';
+  document.getElementById('pwd-current').value='';
+  document.getElementById('pwd-new').value='';
+  document.getElementById('pwd-confirm').value='';
+}
+
+// ── Placeholder style for editor ──
+const ed=document.getElementById('blog-editor');
+ed.addEventListener('focus',()=>{if(ed.innerHTML==='')ed.innerHTML='';});
+</script>
+</body>
+</html>
