@@ -392,7 +392,7 @@ a:focus-visible,.btn:focus-visible,button:focus-visible{outline:3px solid var(--
 <nav class="nav" id="nav"><a href="index.html">Home</a><a href="about.html">About</a><a href="expertise.html">Expertise</a><a href="trainings.html">Trainings</a><a href="portfolio.html">Portfolio</a><a href="blog.html" aria-current=page>Blog</a><a href="contact.html">Contact</a></nav>
 <button class="nav-toggle" id="navToggle" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
 </div></header>
-<section class="page-hero"><div class="wrap reveal">
+<section class="page-hero"><div class="wrap">
   <span class="eyebrow">Blog &amp; Reflections</span>
   <h1 class="display">Writings &amp; reflections</h1>
   <p class="lead">Thoughts on assessment, leadership, and the everyday craft of teaching — shared from the field.</p>
@@ -401,10 +401,11 @@ a:focus-visible,.btn:focus-visible,button:focus-visible{outline:3px solid var(--
   <div id="bl-loading" style="text-align:center;padding:60px 0;color:var(--muted);">Loading articles…</div>
   <div class="blog-grid" id="bl-grid" style="display:none;"></div>
   <p id="bl-empty" style="display:none;text-align:center;padding:60px 0;color:var(--muted);">New reflections are on the way — check back soon.</p>
+  <p id="bl-footer" class="form-note" style="margin-top:28px;display:none;">More reflections are on the way — on assessment, leadership, NEP &amp; NCF, and wellbeing in schools.</p>
 </div></section>
 <footer class="site-footer"><div class="wrap">
 <div><div class="brand"><span class="brand-mark" aria-hidden="true"></span><b>Aboobacker Sidheeque</b></div>
-<p class="foot-tag">Academic Director &amp; Resource Person — Kerala, India.</p>
+<p class="foot-tag">Principal, educator &amp; resource person — Kerala, India.</p>
 <p class="foot-tri"><span class="w1">Inspire</span><span class="sep">·</span><span class="w2">Empower</span><span class="sep">·</span><span class="w3">Transform</span></p>
 <div class="social">
 <a href="https://www.linkedin.com/in/sidhee15/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor" style="width:17px;height:17px"><path d="M20.45 20.45h-3.56v-5.57c0-1.33-.02-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.34V9h3.42v1.56h.05c.48-.9 1.64-1.85 3.38-1.85 3.61 0 4.28 2.38 4.28 5.47v6.27zM5.34 7.43a2.07 2.07 0 1 1 0-4.14 2.07 2.07 0 0 1 0 4.14zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.22.79 24 1.77 24h20.45c.98 0 1.78-.78 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg></a>
@@ -448,6 +449,7 @@ async function loadBlog(){
     }).join('');
     const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}}),{threshold:.10});
     grid.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+    document.getElementById('bl-footer').style.display='block';
   }catch(e){document.getElementById('bl-loading').textContent='Could not load articles.';}
 }
 loadBlog();
