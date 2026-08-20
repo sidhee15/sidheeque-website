@@ -73,6 +73,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(-
 .toolbar button:hover{background:var(--navy);color:#fff;border-color:var(--navy);}
 #blog-editor{border-radius:0 0 10px 10px;min-height:300px;border:1.5px solid var(--hair);padding:14px;outline:none;font-family:'Inter',sans-serif;font-size:1rem;line-height:1.7;color:var(--ink);}
 #blog-editor:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(122,46,142,.10);}
+#blog-editor .callout,.article .callout{display:block;background:var(--mist);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:14px 18px;margin:18px 0;font-weight:500;color:var(--navy);font-size:.98rem;}
 /* ── Status toast ── */
 .toast{position:fixed;bottom:28px;right:28px;background:var(--navy);color:#fff;padding:14px 22px;border-radius:12px;font-size:.92rem;font-weight:500;z-index:999;opacity:0;transform:translateY(10px);transition:opacity .3s,transform .3s;pointer-events:none;}
 .toast.show{opacity:1;transform:translateY(0);}
@@ -120,6 +121,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(-
   <div class="tabs">
     <button class="tab active" onclick="switchTab('portfolio',this)">📸 Portfolio</button>
     <button class="tab" onclick="switchTab('blog',this)">✍️ Blog</button>
+    <button class="tab" onclick="switchTab('comments',this)">💬 Comments</button>
     <button class="tab" onclick="switchTab('settings',this)">⚙️ Settings</button>
   </div>
 
@@ -157,7 +159,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(-
   <!-- ── BLOG TAB ── -->
   <div id="tab-blog" class="main" style="display:none;">
     <div class="panel">
-      <h2>Write new article <span class="badge">New</span></h2>
+      <h2><span id="bl-form-title">Write new article</span> <span class="badge">New</span></h2>
       <div class="row2">
         <div class="field"><label>Title *</label><input type="text" id="bl-title" placeholder="Article title" oninput="autoSlug()"/></div>
         <div class="field"><label>Category *</label>
@@ -189,6 +191,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(-
           <button onclick="fmtH2()">H2</button>
           <button onclick="fmtH3()">H3</button>
           <button onclick="fmtQuote()">❝ Quote</button>
+          <button onclick="fmtCallout()">★ Highlight</button>
           <button onclick="fmt('insertUnorderedList')">• List</button>
           <button onclick="fmt('insertOrderedList')">1. List</button>
           <button onclick="fmtLink()">🔗 Link</button>
@@ -199,6 +202,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(-
       <div style="display:flex;gap:12px;flex-wrap:wrap;">
         <button class="btn btn-primary" id="bl-save-btn" onclick="saveArticle(true)">Publish now</button>
         <button class="btn btn-ghost" onclick="saveArticle(false)">Save as draft</button>
+        <button class="btn btn-ghost" id="bl-cancel-edit" onclick="cancelEdit()" style="display:none;">Cancel edit</button>
       </div>
     </div>
 
@@ -208,7 +212,20 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--mist);color:var(-
     </div>
   </div>
 
-  <!-- ── SETTINGS TAB ── -->
+  <!-- ── COMMENTS TAB ── -->
+  <div id="tab-comments" class="main" style="display:none;">
+    <div class="panel">
+      <h2>Pending comments <span class="badge" id="pending-count">0</span></h2>
+      <p style="color:var(--muted);font-size:.92rem;margin-bottom:16px;">Approve to show on the site, or delete.</p>
+      <div id="pending-list"><div class="empty-state"><div class="spinner"></div><p>Loading…</p></div></div>
+    </div>
+    <div class="panel">
+      <h2>Approved comments</h2>
+      <div id="approved-list"><div class="empty-state"><p>Loading…</p></div></div>
+    </div>
+  </div>
+
+  <!-- ── SETTINGS TAB ── 
   <div id="tab-settings" class="main" style="display:none;">
     <div class="panel setting-section">
       <h2>Change password</h2>
@@ -247,11 +264,64 @@ function getStoredPwd(){return localStorage.getItem(PWD_KEY)||DEFAULT_PWD;}
 function checkAuth(){if(sessionStorage.getItem('admin_auth')==='1'){document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';loadPortfolioList();loadBlogList();}}
 function doLogin(){const v=document.getElementById('pwd-input').value;if(v===getStoredPwd()){sessionStorage.setItem('admin_auth','1');document.getElementById('login-screen').style.display='none';document.getElementById('app').style.display='block';loadPortfolioList();loadBlogList();}else{document.getElementById('login-err').style.display='block';}}
 function doLogout(){sessionStorage.removeItem('admin_auth');location.reload();}
+
+// ════════════════════════════
+// COMMENTS MODERATION
+// ════════════════════════════
+async function loadCommentsAdmin(){
+  const pend=document.getElementById('pending-list');
+  const appr=document.getElementById('approved-list');
+  try{
+    const all=await sbGet('comments','order=created_at.desc');
+    const pending=all.filter(c=>!c.approved);
+    const approved=all.filter(c=>c.approved);
+    document.getElementById('pending-count').textContent=pending.length;
+    if(pending.length===0){pend.innerHTML='<div class="empty-state"><p>No comments awaiting review.</p></div>';}
+    else{pend.innerHTML=pending.map(c=>commentRow(c,true)).join('');}
+    if(approved.length===0){appr.innerHTML='<div class="empty-state"><p>No approved comments yet.</p></div>';}
+    else{appr.innerHTML=approved.map(c=>commentRow(c,false)).join('');}
+  }catch(e){pend.innerHTML='<p style="color:#c0392b;padding:12px;">Could not load comments — did you run the comments SQL?</p>';}
+}
+function commentRow(c,isPending){
+  const d=new Date(c.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const nm=(c.name||'').replace(/</g,'&lt;'), bd=(c.body||'').replace(/</g,'&lt;');
+  return `<div class="blog-item" id="cm-${c.id}">
+    <div class="blog-item-top">
+      <div style="flex:1;">
+        <strong>${nm}</strong>
+        <span>on "${c.article_slug}" · ${d}</span>
+        <p style="margin-top:8px;color:var(--ink);font-size:.95rem;">${bd}</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${isPending?`<button class="btn btn-primary btn-sm" onclick="approveComment('${c.id}')">Approve</button>`:`<button class="btn btn-ghost btn-sm" onclick="unapproveComment('${c.id}')">Hide</button>`}
+        <button class="btn btn-danger btn-sm" onclick="deleteComment('${c.id}')">Delete</button>
+      </div>
+    </div>
+  </div>`;
+}
+async function approveComment(id){
+  const r=await sbPatch('comments',id,{approved:true});
+  if(r.ok){toast('Comment approved — now visible on the site.');loadCommentsAdmin();}
+  else{toast('Could not approve.',true);}
+}
+async function unapproveComment(id){
+  const r=await sbPatch('comments',id,{approved:false});
+  if(r.ok){toast('Comment hidden from the site.');loadCommentsAdmin();}
+  else{toast('Could not update.',true);}
+}
+async function deleteComment(id){
+  if(!confirm('Delete this comment permanently?'))return;
+  const r=await sbDelete('comments',id);
+  if(r.ok){document.getElementById('cm-'+id).remove();toast('Comment deleted.');}
+  else{toast('Could not delete.',true);}
+}
+
 checkAuth();
 
 // ── Tabs ──
 function switchTab(name,btn){
-  ['portfolio','blog','settings'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===name?'':'none';});
+  ['portfolio','blog','comments','settings'].forEach(t=>{var el=document.getElementById('tab-'+t);if(el)el.style.display=t===name?'':'none';});
+  if(name==='comments')loadCommentsAdmin();
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
 }
@@ -342,9 +412,45 @@ function fmt(cmd){document.getElementById('blog-editor').focus();document.execCo
 function fmtH2(){document.getElementById('blog-editor').focus();document.execCommand('formatBlock',false,'h2');}
 function fmtH3(){document.getElementById('blog-editor').focus();document.execCommand('formatBlock',false,'h3');}
 function fmtQuote(){document.getElementById('blog-editor').focus();document.execCommand('formatBlock',false,'blockquote');}
+function fmtCallout(){
+  const ed=document.getElementById('blog-editor');ed.focus();
+  const sel=window.getSelection();
+  if(!sel.rangeCount||sel.isCollapsed){alert('Select the text you want to highlight first.');return;}
+  const text=sel.toString();
+  const box=document.createElement('aside');
+  box.className='callout';
+  box.textContent=text;
+  const range=sel.getRangeAt(0);
+  range.deleteContents();
+  range.insertNode(box);
+}
 function clearFormat(){document.getElementById('blog-editor').focus();document.execCommand('removeFormat',false,null);}
 function fmtLink(){const url=prompt('Enter URL:');if(url){document.getElementById('blog-editor').focus();document.execCommand('createLink',false,url);}}
 
+let _editId=null;
+function editArticle(a){
+  _editId=a.id;
+  document.getElementById('bl-title').value=a.title;
+  document.getElementById('bl-slug').value=a.slug;
+  document.getElementById('bl-cat').value=a.category;
+  const d=new Date(a.published_at);
+  document.getElementById('bl-date').value=d.toISOString().slice(0,10);
+  document.getElementById('bl-time').value=('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2);
+  document.getElementById('blog-editor').innerHTML=a.body;
+  document.getElementById('bl-save-btn').textContent='Update article';
+  document.getElementById('bl-form-title').textContent='Edit article';
+  document.getElementById('bl-cancel-edit').style.display='inline-flex';
+  document.getElementById('tab-blog').scrollIntoView({behavior:'smooth'});
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function cancelEdit(){
+  _editId=null;
+  ['bl-title','bl-slug'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('blog-editor').innerHTML='';
+  document.getElementById('bl-save-btn').textContent='Publish now';
+  document.getElementById('bl-form-title').textContent='Write new article';
+  document.getElementById('bl-cancel-edit').style.display='none';
+}
 async function saveArticle(publish=true){
   const btn=document.getElementById('bl-save-btn');
   const title=document.getElementById('bl-title').value.trim();
@@ -357,12 +463,15 @@ async function saveArticle(publish=true){
   const published_at=new Date(date+'T'+time+':00').toISOString();
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Saving…';
   try{
-    const r=await sbPost('blog',{title,slug,category:cat,body,published_at,visible:publish});
+    let r;
+    if(_editId){
+      r=await sbPatch('blog',_editId,{title,slug,category:cat,body,published_at,visible:publish});
+    }else{
+      r=await sbPost('blog',{title,slug,category:cat,body,published_at,visible:publish});
+    }
     if(!r.ok){const err=await r.text();throw new Error(err);}
-    toast(publish?'Article published! It appears on the blog now.':'Draft saved.');
-    document.getElementById('bl-title').value='';
-    document.getElementById('bl-slug').value='';
-    document.getElementById('blog-editor').innerHTML='';
+    toast(_editId?'Article updated!':(publish?'Article published! It appears on the blog now.':'Draft saved.'));
+    cancelEdit();
     loadBlogList();
   }catch(e){
     if(e.message.includes('duplicate')||e.message.includes('unique')){toast('A slug with that name already exists. Change the URL slug.',true);}
@@ -389,9 +498,8 @@ async function loadBlogList(){
             <span style="margin-left:6px;" class="${a.visible?'vis-on':'vis-off'}">${a.visible?'Published':'Draft'}</span>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <button class="btn btn-ghost btn-sm" onclick="toggleVisible('blog','${a.id}',${a.visible},'bi-${a.id}')">
-              ${a.visible?'Unpublish':'Publish'}
-            </button>
+            <button class="btn btn-ghost btn-sm" onclick='editArticle(${JSON.stringify(a).replace(/'/g,"&#39;")})'>Edit</button>
+            <button class="btn btn-ghost btn-sm" onclick="toggleVisible('blog','${a.id}',${a.visible},'bi-${a.id}')">${a.visible?'Unpublish':'Publish'}</button>
             <a href="../article.html?slug=${a.slug}" target="_blank" class="btn btn-ghost btn-sm">Preview →</a>
             <button class="btn btn-danger btn-sm" onclick="deleteItem('blog','${a.id}','bi-${a.id}','article')">Delete</button>
           </div>
@@ -405,12 +513,12 @@ async function loadBlogList(){
 // SHARED ACTIONS
 // ════════════════════════════
 async function toggleVisible(table,id,current,elId){
-  const r=await sbPatch(table,id,{visible:!current});
-  if(r.ok){toast((!current?'Now visible':'Now hidden')+' on the site.');
-    document.getElementById(elId).querySelector('.vis-on,.vis-off').className=!current?'vis-on':'vis-off';
-    document.getElementById(elId).querySelector('.vis-on,.vis-off').textContent=table==='portfolio'?(!current?'Visible':'Hidden'):(!current?'Published':'Draft');
-    document.getElementById(elId).querySelector('button').textContent=!current?'Hide':'Show';
-  }else{toast('Could not update.',true);}
+  try{
+    const r=await sbPatch(table,id,{visible:!current});
+    if(!r.ok){const t=await r.text();throw new Error(t||'update failed');}
+    toast((!current?'Now visible':'Now hidden')+' on the site.');
+    if(table==='portfolio'){loadPortfolioList();}else{loadBlogList();}
+  }catch(e){toast('Could not update — did you run the write-policies SQL? '+(e.message||''),true);}
 }
 
 async function deleteItem(table,id,elId,label){
